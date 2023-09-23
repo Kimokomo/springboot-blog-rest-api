@@ -2,7 +2,9 @@ package com.springboot.blog.service.impl;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.Banner;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,10 +21,12 @@ import com.springboot.blog.service.PostService;
 public class PostServiceImpl implements PostService {
 
   private PostRepository postRepository;
+  private ModelMapper mapper;
 
   //@Autowired  // From Spring 4.3 onward, if a class is configured as a spring bean and it has only one constructor then we dont need @Autowired annotation
-  public PostServiceImpl(PostRepository postRepository) {
+  public PostServiceImpl(PostRepository postRepository, ModelMapper mapper) {
     this.postRepository = postRepository;
+    this.mapper = mapper;
   }
 
   @Override
@@ -43,11 +47,10 @@ public class PostServiceImpl implements PostService {
   @Override
   public PostResponse getAllPosts(int pageNo, int pageSize, String sortBy, String sortDir) {
 
-    Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
-        : Sort.by(sortBy).descending();
+    Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
 
     // create Pageable instance
-    Pageable pageable = PageRequest.of(pageNo,pageSize,sort);
+    Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
 
     Page<Post> posts = postRepository.findAll(pageable);
 
@@ -100,20 +103,24 @@ public class PostServiceImpl implements PostService {
 
   // private method to convert Entity into DTO
   private PostDto mapToDTO(Post post) {
-    PostDto postDto = new PostDto();
+
+    PostDto postDto = mapper.map(post,PostDto.class);
+
+ /*   PostDto postDto = new PostDto();
     postDto.setId(post.getId());
     postDto.setTitle(post.getTitle());
     postDto.setDescription(post.getDescription());
-    postDto.setContent(post.getContent());
+    postDto.setContent(post.getContent());*/
     return postDto;
   }
 
   // private method to convert DTO to entity
   private Post mapToEntity(PostDto postDto) {
-    Post post = new Post();
-    post.setTitle(postDto.getTitle());
-    post.setDescription(postDto.getDescription());
-    post.setContent(postDto.getContent());
+    Post post = mapper.map(postDto,Post.class);
+//    Post post = new Post();
+//    post.setTitle(postDto.getTitle());
+//    post.setDescription(postDto.getDescription());
+//    post.setContent(postDto.getContent());
     return post;
   }
 }
